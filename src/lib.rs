@@ -2,8 +2,8 @@ use std::process;
 use std::fs;
 use std::io;
 use std::io::Write;
-use std::io::{Error, ErrorKind};
 use std::path::Path;
+use std::error::Error;
 pub struct Args{
     init_command: String,
     query: String
@@ -39,24 +39,21 @@ pub fn new_list(name: &str) -> Result<&str, &str>{
     Ok("File created successfully!")
 }
 
-pub fn show_list(filename: &str) -> Result<String, std::io::Error>{
+pub fn show_list(filename: &str) -> Result<(), Box<dyn Error>>{
     let _filetext = fs::read_to_string(filename)?;
-    if _filetext.is_empty() {
-        let error_message = Error::new(ErrorKind::Other, "You haven't added any items yet");
-        return Err(error_message)
-    }
-    Ok(_filetext)
+    println!("{}",_filetext);
+    Ok(())
 }
 
 pub fn add_item< 'a>(item: & 'a str, file_name: & 'a str) -> Result<& 'a str, std::io::Error>{
     if !Path::new(file_name).exists(){
         println!("{:?}", Path::new(file_name));
-        let error_message =  Error::new(ErrorKind::Other, "That file doesn't exist");
+        let error_message =  io::Error::new(io::ErrorKind::Other, "That file doesn't exist");
         return Err(error_message)
     }
 
     let mut file = fs::OpenOptions::new().append(true).open(file_name)?;
-    writeln!(file, "{}", item)?;
+    writeln!(file, "• {}", item)?;
 
     Ok("Item added successfully!")
 }
@@ -77,12 +74,22 @@ pub fn run_app(items: &[String]){
         let mut filename = String::new();
         let mut item = String::new();
         println!("Please enter the name of your list:");
-        io::stdin().read_line(& mut filename).expect("Failed to read file name");
+        io::stdin().read_line(& mut filename).expect("Failed to read file");
         println!("Please enter the item you want to add:");
         io::stdin().read_line(& mut item).expect("Failed to read input");
         let result = add_item(&item, &filename.trim_end());
         println!("{:?}", result)
 
+    }
+    if _args.query == "show" {
+        let mut filename = String::new();
+        println!("PLease enter the list you want to display:");
+        io::stdin().read_line(& mut filename).expect("Failed to read file");
+        if let Err(e) = show_list(&filename.trim_end()) {
+            eprintln!("Application error: {}", e );
+            process::exit(1)
+            
+        };
     }
     // println!("First argument: {}, Second argument: {}", 
     // _args.init_command, _args.query)
@@ -113,4 +120,15 @@ fn file_append(){
     let item = "remember to call mom";
     let result = add_item(item, "/home/oluwatodunni/Documents/rust-todo-app/another one.txt");
     println!("{:?}", result)
+}
+
+#[test]
+
+fn show_file(){
+    let filename = "another one.txt";
+    if let Err(e) = show_list(filename) {
+        eprintln!("Application error: {}", e );
+        process::exit(1)
+        
+    };
 }
