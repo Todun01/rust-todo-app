@@ -1,6 +1,7 @@
 use std::process;
 use std::fs;
 use std::io;
+use std::io::Write;
 use std::io::{Error, ErrorKind};
 use std::path::Path;
 pub struct Args{
@@ -37,6 +38,7 @@ pub fn new_list(name: &str) -> Result<&str, &str>{
     }
     Ok("File created successfully!")
 }
+
 pub fn show_list(filename: &str) -> Result<String, std::io::Error>{
     let _filetext = fs::read_to_string(filename)?;
     if _filetext.is_empty() {
@@ -46,11 +48,17 @@ pub fn show_list(filename: &str) -> Result<String, std::io::Error>{
     Ok(_filetext)
 }
 
-// pub fn add_item(item: &str, file_name: &str) -> Result<&str, &str>{
+pub fn add_item< 'a>(item: & 'a str, file_name: & 'a str) -> Result<& 'a str, std::io::Error>{
+    if !Path::new(file_name).exists(){
+        let error_message =  Error::new(ErrorKind::Other, "That file doesn't exist");
+        return Err(error_message)
+    }
 
+    let mut file = fs::OpenOptions::new().append(true).open(file_name)?;
+    writeln!(file, "{}", item)?;
 
-//     Ok("Item added successfully!")
-// }
+    Ok("Item added successfully!")
+}
 
 pub fn run_app(items: &[String]){
     let _args: Args = Args::parse_args(items).unwrap_or_else(|err| {
@@ -59,6 +67,7 @@ pub fn run_app(items: &[String]){
     });
     if _args.query == "new_list"{
         let mut filename = String::new();
+        println!("Please enter the name of the file:");
         io::stdin().read_line(& mut filename).expect("Failed to read input");
         let result = new_list(&filename);
         println!("{:?}", result)
@@ -84,5 +93,12 @@ fn file_testing(){
 fn file_creation(){
     let file_name = "testing tings";
     let result = new_list(file_name);
+    println!("{:?}", result)
+}
+
+#[test]
+fn file_append(){
+    let item = "remember to call mom";
+    let result = add_item(item, "/home/oluwatodunni/Desktop/testfile.txt");
     println!("{:?}", result)
 }
