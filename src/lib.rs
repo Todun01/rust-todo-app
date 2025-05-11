@@ -50,6 +50,7 @@ pub fn show_list(filename: &str) -> Result<String, std::io::Error>{
 
 pub fn add_item< 'a>(item: & 'a str, file_name: & 'a str) -> Result<& 'a str, std::io::Error>{
     if !Path::new(file_name).exists(){
+        println!("{:?}", Path::new(file_name));
         let error_message =  Error::new(ErrorKind::Other, "That file doesn't exist");
         return Err(error_message)
     }
@@ -71,6 +72,17 @@ pub fn run_app(items: &[String]){
         io::stdin().read_line(& mut filename).expect("Failed to read input");
         let result = new_list(&filename);
         println!("{:?}", result)
+    }
+    if _args.query == "add"{
+        let mut filename = String::new();
+        let mut item = String::new();
+        println!("Please enter the name of your list:");
+        io::stdin().read_line(& mut filename).expect("Failed to read file name");
+        println!("Please enter the item you want to add:");
+        io::stdin().read_line(& mut item).expect("Failed to read input");
+        let result = add_item(&item, &filename.trim_end());
+        println!("{:?}", result)
+
     }
     // println!("First argument: {}, Second argument: {}", 
     // _args.init_command, _args.query)
@@ -99,6 +111,6 @@ fn file_creation(){
 #[test]
 fn file_append(){
     let item = "remember to call mom";
-    let result = add_item(item, "/home/oluwatodunni/Desktop/testfile.txt");
+    let result = add_item(item, "/home/oluwatodunni/Documents/rust-todo-app/another one.txt");
     println!("{:?}", result)
 }
