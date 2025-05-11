@@ -1,4 +1,6 @@
 use std::process;
+use std::fs;
+use std::io::{Error, ErrorKind};
 pub struct Args{
     init_command: String,
     query: String
@@ -26,6 +28,14 @@ impl Args {
     }
 
 }
+pub fn show_list(filename: &str) -> Result<String, std::io::Error>{
+    let _filetext = fs::read_to_string(filename)?;
+    if _filetext.is_empty() {
+        let error_message = Error::new(ErrorKind::Other, "You haven't added any items yet");
+        return Err(error_message)
+    }
+    Ok(_filetext)
+}
 
 pub fn run_app(items: &[String]){
     let _args: Args = Args::parse_args(items).unwrap_or_else(|err| {
@@ -35,4 +45,17 @@ pub fn run_app(items: &[String]){
 
     println!("First argument: {}, Second argument: {}", 
     _args.init_command, _args.query)
+}
+
+#[cfg(test)]
+
+mod tests{
+    use super::*;
+}
+
+#[test]
+fn file_testing(){
+    let file_name = "/home/oluwatodunni/Desktop/testfile.txt";
+    let result = show_list(file_name);
+    println!("Output: {:?}", result)
 }
