@@ -1,28 +1,30 @@
 use std::process;
 pub struct Args{
     init_command: String,
-    query: String,
-    item: Option<String>
+    query: String
 }
 
 impl Args {
-    pub fn parse_args(_args: &[String]) -> Result <Args, &str>{
+    pub fn parse_args(_args: &[String]) -> Result <Args, String>{
         if _args.len() < 3{
-            return Err("You need to enter more arguments")
+            return Err(format!("You need to enter more arguments"))
         }
-        if _args.len() == 3{
-            let init_command = _args[1].clone();
-            let query = _args[2].clone();
-            let item = None;
-            return Ok(Args{init_command, query, item});
+        if _args.len() > 3{
+            return Err(format!("You entered too many arguments"))
         }
         let init_command = _args[1].clone();
         let query = _args[2].clone();
-        let item = Some(_args[3].clone());
-        Ok(Args{init_command, query, item})
-
-        
+        if init_command != "todoapp"{
+            return Err(format!("{} is not a recognized command", init_command))
+        }
+        let allowed_queries = vec!["add".to_string(), "show".to_string(), 
+        "remove".to_string(), "update".to_string()];
+        if !allowed_queries.contains(&query){
+            return Err(format!("{} is not a recognized command", query))
+        }
+        Ok(Args{init_command, query})
     }
+
 }
 
 pub fn run_app(items: &[String]){
@@ -31,5 +33,6 @@ pub fn run_app(items: &[String]){
         process::exit(1);
     });
 
-    println!("First argument: {}, Second argument: {}, third argument: {:?}", _args.init_command, _args.query, _args.item)
+    println!("First argument: {}, Second argument: {}", 
+    _args.init_command, _args.query)
 }
