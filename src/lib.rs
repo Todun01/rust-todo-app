@@ -1,7 +1,7 @@
 use std::process;
 use std::fs;
 use std::io;
-use std::io::Write;
+use std::io::{BufReader, BufRead, Write};
 use std::path::Path;
 use std::error::Error;
 pub struct Args{
@@ -56,6 +56,20 @@ pub fn add_item< 'a>(item: & 'a str, file_name: & 'a str) -> Result<& 'a str, st
     writeln!(file, "• {}", item)?;
 
     Ok("Item added successfully!")
+}
+pub fn remove_item< 'a>(item: & 'a str, file_name: & 'a str) -> Result<(), Box<dyn Error>>{
+    let file = fs::OpenOptions::new().read(true).open(file_name)?;
+    let reader = io::BufReader::new(file);
+    let lines: Vec<String> = reader
+    .lines()
+    .filter_map(Result::ok)
+    .filter(|line| !line.contains(item))
+    .collect();
+    let mut file = fs::OpenOptions::new().write(true).truncate(true).open(file_name)?;
+    for line in lines{
+        writeln!(file, "{}", line);
+    }
+    Ok(())
 }
 
 pub fn run_app(items: &[String]){
@@ -132,3 +146,4 @@ fn show_file(){
         
     };
 }
+
