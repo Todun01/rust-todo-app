@@ -58,17 +58,30 @@ pub fn add_item< 'a>(item: & 'a str, file_name: & 'a str) -> Result<& 'a str, st
     Ok("Item added successfully!")
 }
 pub fn remove_item< 'a>(item: & 'a str, file_name: & 'a str) -> Result<(), Box<dyn Error>>{
+    let filetext = fs::read_to_string(file_name)?;
     let file = fs::OpenOptions::new().read(true).open(file_name)?;
-    let reader = io::BufReader::new(file);
-    let lines: Vec<String> = reader
-    .lines()
-    .filter_map(Result::ok)
-    .filter(|line| !line.contains(item))
-    .collect();
-    let mut file = fs::OpenOptions::new().write(true).truncate(true).open(file_name)?;
-    for line in lines{
-        writeln!(file, "{}", line);
+    let mut _found: bool = false;
+    for line in filetext.lines(){
+        if line.contains(item){
+            _found = true;
+            let reader = io::BufReader::new(file);
+            let lines: Vec<String> = reader
+            .lines()
+            .filter_map(Result::ok)
+            .filter(|line| !line.contains(item))
+            .collect();
+            let mut file = fs::OpenOptions::new().write(true).truncate(true).open(file_name)?;
+            for line in lines{
+                writeln!(file, "{}", line);
+            }
+            println!("Item removed successfully!");
+            return Ok(());
+        }
     }
+    if !_found{
+        println!("Item not found");
+    }
+    
     Ok(())
 }
 
@@ -104,6 +117,18 @@ pub fn run_app(items: &[String]){
             process::exit(1)
             
         };
+    }
+    if _args.query == "remove"{
+        let mut filename = String::new();
+        let mut item = String::new();
+        println!("Please enter the list you want to remove from:");
+        io::stdin().read_line(& mut filename).expect("Failed to read file name");
+        println!("Please enter the item you want to remove from {}:", filename);
+        io::stdin().read_line(& mut item).expect("Failed to read item");
+        if let Err(e) = remove_item(&item.trim_end(), &filename.trim_end()) {
+            eprintln!("Application error: {}", e);
+            process::exit(1)
+        }
     }
     // println!("First argument: {}, Second argument: {}", 
     // _args.init_command, _args.query)
@@ -152,7 +177,7 @@ fn remove_test(){
     let filename = "another one.txt";
     let item = "call mom";
     if let Err(e) = remove_item(item, filename){
-        eprintln!("Application error: {}", e);
+        eprintln!("Failed to remove item");
         process::exit(1)
     }
 }
