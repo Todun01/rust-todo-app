@@ -104,7 +104,7 @@ pub fn run_app(items: &[String]){
         io::stdin().read_line(& mut filename).expect("Failed to read file");
         println!("Please enter the item you want to add:");
         io::stdin().read_line(& mut item).expect("Failed to read input");
-        let result = add_item(&item, &filename.trim_end());
+        let result = add_item(&item.trim_end(), &filename.trim_end());
         println!("{:?}", result)
 
     }
@@ -156,7 +156,7 @@ fn file_creation(){
 
 #[test]
 fn file_append(){
-    let item = "remember to call mom";
+    let item = "do something";
     let result = add_item(item, "/home/oluwatodunni/Documents/rust-todo-app/another one.txt");
     println!("{:?}", result)
 }
