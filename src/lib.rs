@@ -147,3 +147,12 @@ fn show_file(){
     };
 }
 
+#[test]
+fn remove_test(){
+    let filename = "another one.txt";
+    let item = "call mom";
+    if let Err(e) = remove_item(item, filename){
+        eprintln!("Application error: {}", e);
+        process::exit(1)
+    }
+}
