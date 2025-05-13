@@ -84,9 +84,35 @@ pub fn remove_item< 'a>(item: & 'a str, file_name: & 'a str) -> Result<(), Box<d
     
     Ok(())
 }
-pub fn update_item(item: &str, filename: &str) -> Result<(), Box <dyn Error>>{
-    
-
+pub fn update_item(new_item: &str, old_item: &str, filename: &str) -> Result<(), Box <dyn Error>>{
+    let filetext = fs::read_to_string(filename)?;
+    let file = fs::OpenOptions::new().read(true).open(filename)?;
+    let old_item = String::new();
+    let mut found = false;
+    for line in filetext.lines(){
+        if line.contains(&old_item){
+            found = true;
+            let reader = io::BufReader::new(file);
+            let lines: Vec<String> = reader
+            .lines()
+            .filter_map(Result::ok)
+            .map(|line| {
+                if line.contains(&old_item){
+                    line.replace(&line, new_item)
+                } else{
+                    line
+                }
+            }
+                )
+            .collect();
+            let mut file = fs::OpenOptions::new().write(true).truncate(true).open(filename)?;
+            for line in lines{
+                writeln!(file, "{}", line);
+            }
+            println!("Item updated successfully!");
+            return Ok(());
+        }
+    }
     Ok(())
 }
 
@@ -184,6 +210,17 @@ fn remove_test(){
     let item = "call mom";
     if let Err(e) = remove_item(item, filename){
         eprintln!("Failed to remove item");
+        process::exit(1)
+    }
+}
+
+#[test]
+fn update_test(){
+    let filename = "another one.txt";
+    let old_item = "do something";
+    let new_item = "do something tomorrow";
+    if let Err(e) = update_item(new_item, old_item, filename){
+        eprintln!("Failed to update item");
         process::exit(1)
     }
 }
