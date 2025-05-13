@@ -84,6 +84,12 @@ pub fn remove_item< 'a>(item: & 'a str, file_name: & 'a str) -> Result<(), Box<d
     
     Ok(())
 }
+pub fn update_item(item: &str, filename: &str) -> Result<(), Box <dyn Error>>{
+    
+
+    Ok(())
+}
+
 
 pub fn run_app(items: &[String]){
     let _args: Args = Args::parse_args(items).unwrap_or_else(|err| {
