@@ -88,6 +88,7 @@ pub fn update_item(new_item: &str, old_item: &str, filename: &str) -> Result<(),
     let filetext = fs::read_to_string(filename)?;
     let file = fs::OpenOptions::new().read(true).open(filename)?;
     let old_item = String::new();
+    let mut new_item = String::new();
     let mut found = false;
     for line in filetext.lines(){
         if line.contains(&old_item){
@@ -98,9 +99,10 @@ pub fn update_item(new_item: &str, old_item: &str, filename: &str) -> Result<(),
             .filter_map(Result::ok)
             .map(|line| {
                 if line.contains(&old_item){
-                    line.replace(&line, new_item)
+                    new_item.clone()
                 } else{
-                    line
+                    println!("That item does not exist");
+                    return line.clone()
                 }
             }
                 )
@@ -112,6 +114,9 @@ pub fn update_item(new_item: &str, old_item: &str, filename: &str) -> Result<(),
             println!("Item updated successfully!");
             return Ok(());
         }
+    }
+    if found == false{
+        println!("That item does not exist")
     }
     Ok(())
 }
