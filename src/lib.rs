@@ -57,18 +57,19 @@ pub fn add_item< 'a>(item: & 'a str, file_name: & 'a str) -> Result<& 'a str, st
 
     Ok("Item added successfully!")
 }
-pub fn remove_item< 'a>(item: & 'a str, file_name: & 'a str) -> Result<(), Box<dyn Error>>{
+pub fn remove_item< 'a>(line_no: i64, file_name: & 'a str) -> Result<(), Box<dyn Error>>{
     let filetext = fs::read_to_string(file_name)?;
     let file = fs::OpenOptions::new().read(true).open(file_name)?;
     let mut _found: bool = false;
+    let count: i64 = 0;
     for line in filetext.lines(){
-        if line.contains(item){
+        if count == line_no{
             _found = true;
             let reader = io::BufReader::new(file);
             let lines: Vec<String> = reader
             .lines()
             .filter_map(Result::ok)
-            .filter(|line| !line.contains(item))
+            .filter(|line| !count == line_no)
             .collect();
             let mut file = fs::OpenOptions::new().write(true).truncate(true).open(file_name)?;
             for line in lines{
@@ -78,8 +79,8 @@ pub fn remove_item< 'a>(item: & 'a str, file_name: & 'a str) -> Result<(), Box<d
             return Ok(());
         }
     }
-    if !_found{
-        println!("Item not found");
+    if count < line_no{
+        println!("Oops. Nothing to remove here");
     }
     
     Ok(())
@@ -149,12 +150,13 @@ pub fn run_app(items: &[String]){
     }
     if _args.query == "remove"{
         let mut filename = String::new();
-        let mut item = String::new();
+        let mut line_no = String::new();
         println!("Please enter the list you want to remove from:");
         io::stdin().read_line(& mut filename).expect("Failed to read file name");
         println!("Please enter the item you want to remove from {}:", filename);
-        io::stdin().read_line(& mut item).expect("Failed to read item");
-        if let Err(e) = remove_item(&item.trim_end(), &filename.trim_end()) {
+        io::stdin().read_line(& mut line_no).expect("Failed to read item");
+        let line_num: i64 = line_no.parse().unwrap();
+        if let Err(e) = remove_item(line_num, &filename.trim_end()) {
             eprintln!("Application error: {}", e);
             process::exit(1)
         }
@@ -205,7 +207,7 @@ fn show_file(){
 fn remove_test(){
     let filename = "another one.txt";
     let item = "call mom";
-    if let Err(e) = remove_item(item, filename){
+    if let Err(e) = remove_item(3, filename){
         eprintln!("Failed to remove item");
         process::exit(1)
     }
