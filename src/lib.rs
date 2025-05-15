@@ -61,15 +61,15 @@ pub fn remove_item< 'a>(line_no: i64, file_name: & 'a str) -> Result<(), Box<dyn
     let filetext = fs::read_to_string(file_name)?;
     let file = fs::OpenOptions::new().read(true).open(file_name)?;
     let mut _found: bool = false;
-    let count: i64 = 0;
-    for line in filetext.lines(){
+    let mut count: i64 = 1;
+    for _line in filetext.lines(){
         if count == line_no{
             _found = true;
             let reader = io::BufReader::new(file);
             let lines: Vec<String> = reader
             .lines()
             .filter_map(Result::ok)
-            .filter(|line| !count == line_no)
+            .filter(|_line| true)
             .collect();
             let mut file = fs::OpenOptions::new().write(true).truncate(true).open(file_name)?;
             for line in lines{
@@ -78,6 +78,7 @@ pub fn remove_item< 'a>(line_no: i64, file_name: & 'a str) -> Result<(), Box<dyn
             println!("Item removed successfully!");
             return Ok(());
         }
+        count += 1
     }
     if count < line_no{
         println!("Oops. Nothing to remove here");
@@ -206,7 +207,6 @@ fn show_file(){
 #[test]
 fn remove_test(){
     let filename = "another one.txt";
-    let item = "call mom";
     if let Err(e) = remove_item(3, filename){
         eprintln!("Failed to remove item");
         process::exit(1)
