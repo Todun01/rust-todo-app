@@ -45,17 +45,22 @@ pub fn show_list(filename: &str) -> Result<(), Box<dyn Error>>{
     Ok(())
 }
 
-pub fn add_item< 'a>(item: & 'a str, file_name: & 'a str) -> Result<& 'a str, std::io::Error>{
+pub fn add_item< 'a>(item: & 'a str, file_name: & 'a str) -> Result<(), Box<dyn Error>>{
+    let filetext = fs::read_to_string(file_name)?;
+    let mut count = 0;
+    for line in filetext.lines(){
+        count += 1;
+    }
     if !Path::new(file_name).exists(){
-        println!("{:?}", Path::new(file_name));
-        let error_message =  io::Error::new(io::ErrorKind::Other, "That file doesn't exist");
-        return Err(error_message)
+        println!("That file doesn't exist");
+        return Ok(())
     }
 
     let mut file = fs::OpenOptions::new().append(true).open(file_name)?;
-    writeln!(file, "• {}", item)?;
+    writeln!(file, "{}• {}", count + 1, item)?;
+    println!("Item added successfully!");
 
-    Ok("Item added successfully!")
+    Ok(())
 }
 pub fn remove_item< 'a>(line_no: i64, file_name: & 'a str) -> Result<(), Box<dyn Error>>{
     let filetext = fs::read_to_string(file_name)?;
@@ -189,8 +194,10 @@ fn file_creation(){
 #[test]
 fn file_append(){
     let item = "do something";
-    let result = add_item(item, "/home/oluwatodunni/Documents/rust-todo-app/another one.txt");
-    println!("{:?}", result)
+    if let Err(e) = add_item(item.trim_end(), "/home/oluwatodunni/Documents/rust-todo-app/another one.txt") {
+        eprintln!("APplication error: {}", e);
+        process::exit(1)
+    }
 }
 
 #[test]
