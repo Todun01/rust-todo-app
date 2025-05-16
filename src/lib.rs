@@ -91,31 +91,26 @@ pub fn remove_item< 'a>(line_no: i64, file_name: & 'a str) -> Result<(), Box<dyn
     
     Ok(())
 }
-pub fn update_item(new_item: &str, old_item: &str, filename: &str) -> Result<(), Box <dyn Error>>{
+pub fn update_item(new_item: &str, old_item_no: &str, filename: &str) -> Result<(), Box <dyn Error>>{
     let filetext = fs::read_to_string(filename)?;
-    let file = fs::OpenOptions::new().read(true).open(filename)?;
+    let mut file = fs::OpenOptions::new().write(true).truncate(true).open(filename)?;
+    let mut lines: Vec<String> = vec![];
     let mut found = false;
     for line in filetext.lines(){
-        if line.contains(&old_item){
+        if line.split('•').nth(0) == Some(old_item_no){
             found = true;
-            let reader = io::BufReader::new(file);
-            let lines: Vec<String> = reader
-            .lines()
-            .filter_map(Result::ok)
-            .map(|line| {
-                line.replace(&old_item, &new_item)
-        })
-            .collect();
-            let mut file = fs::OpenOptions::new().write(true).truncate(true).open(filename)?;
-            for line in lines{
-                writeln!(file, "{}", line);
-            }
-            println!("Item updated successfully!");
-            return Ok(());
+            lines.push(new_item.to_string());
+        } else{
+            lines.push(line.to_string())
         }
     }
-    if found == false{
-        println!("That item does not exist")
+    if found{
+        for line in lines{
+            writeln!(file, "{}",line)?;
+        }
+        println!("Item updated successfully!")
+    } else{
+        println!("There is no item at number {}", old_item_no)
     }
     Ok(())
 }
@@ -223,9 +218,9 @@ fn remove_test(){
 #[test]
 fn update_test(){
     let filename = "another one.txt";
-    let old_item = "do something";
+    let old_item_no = "2";
     let new_item = "do something tomorrow";
-    if let Err(e) = update_item(new_item, old_item, filename){
+    if let Err(e) = update_item(new_item, old_item_no, filename){
         eprintln!("Failed to update item");
         process::exit(1)
     }
