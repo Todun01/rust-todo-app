@@ -48,7 +48,7 @@ pub fn show_list(filename: &str) -> Result<(), Box<dyn Error>>{
 pub fn add_item< 'a>(item: & 'a str, file_name: & 'a str) -> Result<(), Box<dyn Error>>{
     let filetext = fs::read_to_string(file_name)?;
     let mut count = 0;
-    for line in filetext.lines(){
+    for _line in filetext.lines(){
         count += 1;
     }
     if !Path::new(file_name).exists(){
@@ -62,34 +62,28 @@ pub fn add_item< 'a>(item: & 'a str, file_name: & 'a str) -> Result<(), Box<dyn 
 
     Ok(())
 }
-pub fn remove_item< 'a>(line_no: i64, file_name: & 'a str) -> Result<(), Box<dyn Error>>{
+pub fn remove_item< 'a>(line_no: &str, file_name: & 'a str) -> Result<(), Box<dyn Error>>{
     let filetext = fs::read_to_string(file_name)?;
-    let file = fs::OpenOptions::new().read(true).open(file_name)?;
+    let mut file = fs::OpenOptions::new().write(true).truncate(true).open(file_name)?;
+    let mut lines: Vec<String> = vec![];
     let mut _found: bool = false;
-    let mut count: i64 = 1;
     for _line in filetext.lines(){
-        if count == line_no{
+        if _line.split('•').nth(0) == Some(line_no){
             _found = true;
-            let reader = io::BufReader::new(file);
-            let lines: Vec<String> = reader
-            .lines()
-            .filter_map(Result::ok)
-            .filter(|_line| true)
-            .collect();
-            let mut file = fs::OpenOptions::new().write(true).truncate(true).open(file_name)?;
-            for line in lines{
-                writeln!(file, "{}", line);
-            }
-            println!("Item removed successfully!");
-            return Ok(());
+        } else{
+            let mut new_line = _line.split('•').nth(1).unwrap();
+            lines.push(new_line.to_string());
         }
-        count += 1
     }
-    if count < line_no{
-        println!("Oops. Nothing to remove here");
+    if !_found {
+        println!("There is no item at number {}", line_no);
     }
+    for (i, line) in lines.iter().enumerate(){
+        writeln!(file, "{}•{}",i + 1, line)?;
+    }
+    println!("Item removed successfully!");
+    return Ok(());
     
-    Ok(())
 }
 pub fn update_item(new_item: &str, old_item_no: &str, filename: &str) -> Result<(), Box <dyn Error>>{
     let filetext = fs::read_to_string(filename)?;
@@ -187,8 +181,7 @@ pub fn run_app(items: &[String]){
         io::stdin().read_line(& mut filename).expect("Failed to read file name");
         println!("Please enter the item you want to remove from {}:", filename);
         io::stdin().read_line(& mut line_no).expect("Failed to read item");
-        let line_num: i64 = line_no.parse().unwrap();
-        if let Err(e) = remove_item(line_num, &filename.trim_end()) {
+        if let Err(e) = remove_item(&line_no, &filename.trim_end()) {
             eprintln!("Application error: {}", e);
             process::exit(1)
         }
@@ -240,7 +233,7 @@ fn show_file(){
 #[test]
 fn remove_test(){
     let filename = "another one.txt";
-    if let Err(e) = remove_item(3, filename){
+    if let Err(e) = remove_item("2", filename){
         eprintln!("Failed to remove item");
         process::exit(1)
     }
