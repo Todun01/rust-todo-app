@@ -96,13 +96,15 @@ pub fn update_item(new_item: &str, old_item_no: &str, filename: &str) -> Result<
     let mut file = fs::OpenOptions::new().write(true).truncate(true).open(filename)?;
     let mut lines: Vec<String> = vec![];
     let mut found = false;
+    let mut count = 1;
     for line in filetext.lines(){
         if line.split('•').nth(0) == Some(old_item_no){
             found = true;
-            lines.push(new_item.to_string());
+            lines.push(format!("{}• {}", count, new_item.to_string()));
         } else{
             lines.push(line.to_string())
         }
+        count += 1;
     }
     if found{
         for line in lines{
@@ -113,6 +115,14 @@ pub fn update_item(new_item: &str, old_item_no: &str, filename: &str) -> Result<
         println!("There is no item at number {}", old_item_no)
     }
     Ok(())
+}
+pub fn count_line(filename: &str) -> Result <i64 , Box<dyn Error>>{
+    let filetext = fs::read_to_string(filename)?;
+    let mut count: i64 = 0;
+    for line in filetext.lines(){
+        count += 1
+    };
+    Ok(count)
 }
 
 
@@ -155,21 +165,16 @@ pub fn run_app(items: &[String]){
         let mut new_item = String::new();
         println!("Please enter the list you want to update:");
         io::stdin().read_line(&mut filename).expect("Failed to read file name");
+        println!("These are the items on your list: ");
         if let Err(e) = show_list(&filename.trim_end()) {
             eprintln!("Application error: {}", e );
             process::exit(1)
-            
         };
-        let filetext = fs::read_to_string(&filename.to_string())?;
-        let mut count = 0;
-        for line in filetext.lines(){
-            count += 1;
-        }
         println!("Please enter the number of the item you want to update:");
         io::stdin().read_line(&mut old_item_no).expect("Failed to read old item number");
         println!("Please enter the new item:");
         io::stdin().read_line(&mut new_item).expect("Failed to read new item");
-        if let Err(e) = update_item("{}{:?}"&new_item.trim_end(), &old_item_no.trim_end(), &filename.trim_end()){
+        if let Err(e) = update_item(&new_item.trim_end(), &old_item_no.trim_end(), &filename.trim_end()){
             eprintln!("Application Error: {}", e);
             process::exit(1)
         }
