@@ -149,6 +149,32 @@ pub fn run_app(items: &[String]){
             
         };
     }
+    if _args.query == "update"{
+        let mut filename = String::new();
+        let mut old_item_no = String::new();
+        let mut new_item = String::new();
+        println!("Please enter the list you want to update:");
+        io::stdin().read_line(&mut filename).expect("Failed to read file name");
+        if let Err(e) = show_list(&filename.trim_end()) {
+            eprintln!("Application error: {}", e );
+            process::exit(1)
+            
+        };
+        let filetext = fs::read_to_string(&filename.to_string())?;
+        let mut count = 0;
+        for line in filetext.lines(){
+            count += 1;
+        }
+        println!("Please enter the number of the item you want to update:");
+        io::stdin().read_line(&mut old_item_no).expect("Failed to read old item number");
+        println!("Please enter the new item:");
+        io::stdin().read_line(&mut new_item).expect("Failed to read new item");
+        if let Err(e) = update_item("{}{:?}"&new_item.trim_end(), &old_item_no.trim_end(), &filename.trim_end()){
+            eprintln!("Application Error: {}", e);
+            process::exit(1)
+        }
+
+    }
     if _args.query == "remove"{
         let mut filename = String::new();
         let mut line_no = String::new();
