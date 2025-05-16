@@ -31,12 +31,15 @@ impl Args {
     }
 
 }
-pub fn new_list(name: &str) -> Result<&str, &str>{
-    fs::File::create(&format!("{}.txt",name));
-    if Path::new(name).exists(){
-        return Err("Error creating file")
+pub fn new_list(name: &str) -> Result<(), Box<dyn Error>>{
+    if Path::new(&format!("{}.txt", name)).exists(){
+        println!("That file already exists");
+    }else{
+        let _ = fs::File::create(&format!("{}.txt",name));
+        println!("File created successfully!");
     }
-    Ok("File created successfully!")
+    
+    Ok(())
 }
 
 pub fn show_list(filename: &str) -> Result<(), Box<dyn Error>>{
@@ -129,8 +132,10 @@ pub fn run_app(items: &[String]){
         let mut filename = String::new();
         println!("Please enter the name of the file:");
         io::stdin().read_line(& mut filename).expect("Failed to read input");
-        let result = new_list(&filename);
-        println!("{:?}", result)
+        if let Err(e) = new_list(filename.trim_end()){
+            eprintln!("Application error: {}", e);
+            process::exit(1)
+        } 
     }
     if _args.query == "add"{
         let mut filename = String::new();
