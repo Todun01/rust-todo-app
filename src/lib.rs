@@ -139,8 +139,10 @@ pub fn run_app(items: &[String]){
         io::stdin().read_line(& mut filename).expect("Failed to read file");
         println!("Please enter the item you want to add:");
         io::stdin().read_line(& mut item).expect("Failed to read input");
-        let result = add_item(&item.trim_end(), &filename.trim_end());
-        println!("{:?}", result)
+        if let Err(e) = add_item(item.trim_end(), filename.trim_end()){
+            eprintln!("Application error: {}", e);
+            process::exit(1)
+        }
 
     }
     if _args.query == "show" {
