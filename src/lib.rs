@@ -179,9 +179,14 @@ pub fn run_app(items: &[String]){
         let mut line_no = String::new();
         println!("Please enter the list you want to remove from:");
         io::stdin().read_line(& mut filename).expect("Failed to read file name");
-        println!("Please enter the item you want to remove from {}:", filename);
+        println!("Here are the items on your list:");
+        if let Err(e) = show_list(&filename.trim_end()){
+            eprintln!("Application error: {}", e);
+            process::exit(1)
+        }
+        println!("Please enter number of the item you want to remove");
         io::stdin().read_line(& mut line_no).expect("Failed to read item");
-        if let Err(e) = remove_item(&line_no, &filename.trim_end()) {
+        if let Err(e) = remove_item(&line_no.trim_end(), &filename.trim_end()) {
             eprintln!("Application error: {}", e);
             process::exit(1)
         }
